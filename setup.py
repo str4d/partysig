@@ -2,6 +2,7 @@
 # See LICENSE for details.
 
 from setuptools import setup
+import versioneer
 
 
 with open('README.rst', 'rb') as infile:
@@ -9,7 +10,7 @@ with open('README.rst', 'rb') as infile:
 
 setup(
     name='partysig',
-    version='0',
+    version=versioneer.get_version(),
     description='Create and verify distributed multi-party signatures',
     long_description=long_description,
     author='Jack Grigg',
@@ -33,4 +34,5 @@ setup(
     packages=[
         'partysig',
     ],
+    cmdclass=versioneer.get_cmdclass(),
 )
