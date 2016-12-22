@@ -34,5 +34,11 @@ setup(
     packages=[
         'partysig',
     ],
+    entry_points={
+        'console_scripts':
+        [
+            'partysig = partysig.cli:partysig',
+        ]
+    },
     cmdclass=versioneer.get_cmdclass(),
 )
