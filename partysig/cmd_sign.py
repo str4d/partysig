@@ -1,5 +1,6 @@
 import click
-import os
+from nacl.encoding import HexEncoder, RawEncoder
+from nacl.signing import SigningKey, VerifyKey
 from twisted.internet.defer import (
     Deferred,
     DeferredList,
@@ -14,18 +15,25 @@ signProto = util.wormholeProto('sign')
 
 @signProto
 @inlineCallbacks
-def alice_channel(w, i, getPSig):
+def alice_channel(w, i, msg, master, getPSig):
     code = yield w.get_code()
     click.echo('- %s' % code)
-    yield w.send(b'm')
-    yield w.send(b'P')
+    yield w.send(master)
+    yield w.send(msg)
     sig = yield w.get()
-    click.echo("Participant %d's sig: %s" % (i, sig))
+    click.echo("Participant %d's sig: %s" % (i, HexEncoder.encode(sig)))
     psig = yield getPSig(i, sig)
     yield w.send(psig)
 
 def alice(reactor, cfg):
-    sigs = {0: 'S0(m|P)'}
+    msg = b'This is a message.'
+    script_hex = click.prompt('Enter script')
+    script = HexEncoder.decode(script_hex)
+    master = util.master_key(script)
+    sk_hex = click.prompt('Enter signing key for master key %s' % HexEncoder.encode(master))
+    sk = SigningKey(sk_hex, HexEncoder)
+    sig = sk.sign(msg).signature
+    sigs = {0: sig}
     pending_psigs = []
     generated_psig = [] # List so we can set inside nested function
 
@@ -33,10 +41,9 @@ def alice(reactor, cfg):
     def getPSig(i, sig):
         sigs[i] = sig
         if len(sigs) == cfg.threshold:
-            click.echo('Threshold reached, generating signature')
-            psig = b'1 [%s] [%s]' % (', '.join(['P%d' % j for j in sigs.keys()]),
-                                     ', '.join(sigs.values()))
-            click.echo("Signature: '%s'" % psig)
+            click.echo('Threshold reached')
+            psig = util.psig(script, sigs)
+            click.echo('Signature: %s' % HexEncoder.encode(psig))
             generated_psig.append(psig)
             for d in pending_psigs:
                 d.callback(psig)
@@ -50,14 +57,17 @@ def alice(reactor, cfg):
             returnValue(psig)
 
     click.echo('Give one code to each participant:')
-    return DeferredList([alice_channel(reactor, i, getPSig) for i in range(1, cfg.size)])
+    return DeferredList([alice_channel(reactor, i, msg, master, getPSig) for i in range(1, cfg.size)])
 
 @signProto
 @inlineCallbacks
 def bob(w):
     yield w.input_code('Enter code from Alice: ')
-    msg = yield w.get()
     master = yield w.get()
-    yield w.send(b'S%d(%s|%s)' % (os.getpid(), msg, master))
-    sig = yield w.get()
-    click.echo("Signature: '%s'" % sig)
+    msg = yield w.get()
+    sk_hex = click.prompt('Enter signing key for master key %s' % HexEncoder.encode(master))
+    sk = SigningKey(sk_hex, HexEncoder)
+    sig = sk.sign(msg).signature
+    yield w.send(sig)
+    psig = yield w.get()
+    click.echo('Signature: %s' % HexEncoder.encode(psig))

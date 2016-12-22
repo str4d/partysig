@@ -30,6 +30,8 @@ setup(
 
     install_requires=[
         'magic-wormhole',
+        'pyblake2',
+        'pynacl',
     ],
     packages=[
         'partysig',
