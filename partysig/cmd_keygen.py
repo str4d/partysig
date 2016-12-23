@@ -1,6 +1,5 @@
 import click
-from nacl.encoding import HexEncoder, RawEncoder
-from nacl.signing import SigningKey, VerifyKey
+from nacl.encoding import HexEncoder
 from twisted.internet.defer import (
     Deferred,
     DeferredList,
@@ -18,17 +17,13 @@ keygenProto = util.wormholeProto('keygen')
 def alice_channel(w, i, getScript):
     code = yield w.get_code()
     click.echo('- %s' % code)
-    pk_bytes = yield w.get()
-    pubkey = VerifyKey(pk_bytes, RawEncoder)
-    click.echo("Participant %d's pubkey: %s" % (i, pubkey.encode(HexEncoder)))
+    pubkey = yield w.get()
+    click.echo("Participant %d's pubkey: %s" % (i, HexEncoder.encode(pubkey)))
     script = yield getScript(i, pubkey)
     yield w.send(script)
 
-def alice(reactor, cfg):
-    sk = SigningKey.generate()
-    click.echo('Signing key: %s' % sk.encode(HexEncoder))
-    click.echo('Pubkey: %s' % sk.verify_key.encode(HexEncoder))
-    pubkeys = {0: sk.verify_key}
+def alice(reactor, cfg, ks):
+    pubkeys = {0: ks.generate_key()}
     pending_scripts = []
 
     @inlineCallbacks
@@ -36,7 +31,7 @@ def alice(reactor, cfg):
         pubkeys[i] = pubkey
         if len(pubkeys) == cfg.size:
             script = util.script(cfg, pubkeys)
-            click.echo('Script: %s' % HexEncoder.encode(script))
+            ks.save_script(script)
             click.echo('Master key: %s' % HexEncoder.encode(util.master_key(script)))
             for d in pending_scripts:
                 d.callback(script)
@@ -52,12 +47,9 @@ def alice(reactor, cfg):
 
 @keygenProto
 @inlineCallbacks
-def bob(w):
+def bob(w, ks):
     yield w.input_code('Enter code from Alice: ')
-    sk = SigningKey.generate()
-    click.echo('Signing key: %s' % sk.encode(HexEncoder))
-    click.echo('Pubkey: %s' % sk.verify_key.encode(HexEncoder))
-    yield w.send(sk.verify_key.encode(RawEncoder))
+    yield w.send(ks.generate_key())
     script = yield w.get()
-    click.echo('Script: %s' % HexEncoder.encode(script))
+    ks.save_script(script)
     click.echo('Master key: %s' % HexEncoder.encode(util.master_key(script)))

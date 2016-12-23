@@ -1,6 +1,5 @@
 import click
-from nacl.encoding import HexEncoder, RawEncoder
-from nacl.signing import SigningKey, VerifyKey
+from nacl.encoding import HexEncoder
 from twisted.internet.defer import (
     Deferred,
     DeferredList,
@@ -25,15 +24,10 @@ def alice_channel(w, i, msg, master, getPSig):
     psig = yield getPSig(i, sig)
     yield w.send(psig)
 
-def alice(reactor, cfg):
+def alice(reactor, cfg, ks):
     msg = b'This is a message.'
-    script_hex = click.prompt('Enter script')
-    script = HexEncoder.decode(script_hex)
-    master = util.master_key(script)
-    sk_hex = click.prompt('Enter signing key for master key %s' % HexEncoder.encode(master))
-    sk = SigningKey(sk_hex, HexEncoder)
-    sig = sk.sign(msg).signature
-    sigs = {0: sig}
+    master = HexEncoder.decode(click.prompt('Master key'))
+    sigs = {0: ks.sign(master, msg)}
     pending_psigs = []
     generated_psig = [] # List so we can set inside nested function
 
@@ -42,7 +36,7 @@ def alice(reactor, cfg):
         sigs[i] = sig
         if len(sigs) == cfg.threshold:
             click.echo('Threshold reached')
-            psig = util.psig(script, sigs)
+            psig = util.psig(ks.get_script(master), sigs)
             click.echo('Signature: %s' % HexEncoder.encode(psig))
             generated_psig.append(psig)
             for d in pending_psigs:
@@ -61,13 +55,10 @@ def alice(reactor, cfg):
 
 @signProto
 @inlineCallbacks
-def bob(w):
+def bob(w, ks):
     yield w.input_code('Enter code from Alice: ')
     master = yield w.get()
     msg = yield w.get()
-    sk_hex = click.prompt('Enter signing key for master key %s' % HexEncoder.encode(master))
-    sk = SigningKey(sk_hex, HexEncoder)
-    sig = sk.sign(msg).signature
-    yield w.send(sig)
+    yield w.send(ks.sign(master, msg))
     psig = yield w.get()
     click.echo('Signature: %s' % HexEncoder.encode(psig))

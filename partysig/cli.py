@@ -2,6 +2,7 @@ import click
 from twisted.internet.task import react
 
 from . import __version__
+from .keystore import keystore
 
 
 class Config(object):
@@ -33,13 +34,15 @@ def keygen():
 @pass_config
 def keygen_start(cfg):
     from cmd_keygen import alice
-    react(alice, (cfg,))
+    with keystore(cfg) as ks:
+        react(alice, (cfg, ks))
 
 @keygen.command(name='join')
 @pass_config
 def keygen_join(cfg):
     from cmd_keygen import bob
-    react(bob)
+    with keystore(cfg) as ks:
+        react(bob, (ks,))
 
 @partysig.group()
 def sign():
@@ -49,13 +52,15 @@ def sign():
 @pass_config
 def sign_start(cfg):
     from cmd_sign import alice
-    react(alice, (cfg,))
+    with keystore(cfg) as ks:
+        react(alice, (cfg, ks))
 
 @sign.command(name='join')
 @pass_config
 def sign_join(cfg):
     from cmd_sign import bob
-    react(bob)
+    with keystore(cfg) as ks:
+        react(bob, (ks,))
 
 @partysig.command()
 def verify():
