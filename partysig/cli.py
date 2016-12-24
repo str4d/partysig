@@ -2,6 +2,7 @@
 # See LICENSE for details.
 
 import click
+from nacl.encoding import HexEncoder
 import os
 from twisted.internet.task import react
 
@@ -71,11 +72,13 @@ def sign():
     pass
 
 @sign.command(name='start')
+@click.option('--key', prompt=True)
+@click.argument('msg', type=click.File('rb'))
 @pass_config
-def sign_start(cfg):
+def sign_start(cfg, key, msg):
     from cmd_sign import alice
     with keystore(cfg) as ks:
-        react(alice, (ks,))
+        react(alice, (ks, HexEncoder.decode(key), msg.read()))
 
 @sign.command(name='join')
 @pass_config
@@ -85,6 +88,9 @@ def sign_join(cfg):
         react(bob, (ks,))
 
 @partysig.command()
-def verify():
+@click.option('--key', prompt=True)
+@click.argument('msg', type=click.File('rb'))
+@click.argument('signature')
+def verify(key, msg, signature):
     from cmd_verify import verify
-    react(verify)
+    react(verify, (HexEncoder.decode(key), msg.read(), HexEncoder.decode(signature)))

@@ -27,9 +27,7 @@ def alice_channel(w, d_ui, i, msg, master, getPSig):
     psig = yield getPSig(i, sig)
     yield w.send(psig)
 
-def alice(reactor, ks):
-    msg = b'This is a message.'
-    master = HexEncoder.decode(click.prompt('Master key'))
+def alice(reactor, ks, master, msg):
     script = ks.get_script(master)
     threshold, size = util.params(script)
     sigs = {0: ks.sign(master, msg)}

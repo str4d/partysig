@@ -10,11 +10,7 @@ from twisted.internet import defer
 
 from . import util
 
-def verify(reactor):
-    msg = b'This is a message.'
-    master = HexEncoder.decode(click.prompt('Master key'))
-    psig = HexEncoder.decode(click.prompt('Signature'))
-
+def verify(reactor, master, msg, psig):
     version = struct.unpack('>B', psig[0])[0]
     if version != 1:
         raise ValueError('Unsupported signature version: %d' % version)
