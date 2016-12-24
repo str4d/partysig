@@ -24,9 +24,11 @@ def alice_channel(w, i, msg, master, getPSig):
     psig = yield getPSig(i, sig)
     yield w.send(psig)
 
-def alice(reactor, cfg, ks):
+def alice(reactor, ks):
     msg = b'This is a message.'
     master = HexEncoder.decode(click.prompt('Master key'))
+    script = ks.get_script(master)
+    threshold, size = util.params(script)
     sigs = {0: ks.sign(master, msg)}
     pending_psigs = []
     generated_psig = [] # List so we can set inside nested function
@@ -34,9 +36,9 @@ def alice(reactor, cfg, ks):
     @inlineCallbacks
     def getPSig(i, sig):
         sigs[i] = sig
-        if len(sigs) == cfg.threshold:
+        if len(sigs) == threshold:
             click.echo('Threshold reached')
-            psig = util.psig(ks.get_script(master), sigs)
+            psig = util.psig(script, sigs)
             click.echo('Signature: %s' % HexEncoder.encode(psig))
             generated_psig.append(psig)
             for d in pending_psigs:
@@ -51,7 +53,7 @@ def alice(reactor, cfg, ks):
             returnValue(psig)
 
     click.echo('Give one code to each participant:')
-    return DeferredList([alice_channel(reactor, i, msg, master, getPSig) for i in range(1, cfg.size)])
+    return DeferredList([alice_channel(reactor, i, msg, master, getPSig) for i in range(1, size)])
 
 @signProto
 @inlineCallbacks

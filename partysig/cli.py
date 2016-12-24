@@ -12,27 +12,27 @@ class Config(object):
 pass_config = click.make_pass_decorator(Config)
 
 @click.group()
-@click.option('--size', default=3,
-              help='number of participants who can sign')
-@click.option('--threshold', default=2,
-              help='minimum number of participants required to create a signature')
 @click.version_option(
     message='partysig %(version)s',
     version=__version__,
 )
 @click.pass_context
-def partysig(ctx, size, threshold):
+def partysig(ctx):
     ctx.obj = cfg = Config()
-    cfg.size = size
-    cfg.threshold = threshold
 
 @partysig.group()
 def keygen():
     pass
 
 @keygen.command(name='start')
+@click.option('--size', default=3,
+              help='number of participants who can sign')
+@click.option('--threshold', default=2,
+              help='minimum number of participants required to create a signature')
 @pass_config
-def keygen_start(cfg):
+def keygen_start(cfg, size, threshold):
+    cfg.size = size
+    cfg.threshold = threshold
     from cmd_keygen import alice
     with keystore(cfg) as ks:
         react(alice, (cfg, ks))
@@ -53,7 +53,7 @@ def sign():
 def sign_start(cfg):
     from cmd_sign import alice
     with keystore(cfg) as ks:
-        react(alice, (cfg, ks))
+        react(alice, (ks,))
 
 @sign.command(name='join')
 @pass_config

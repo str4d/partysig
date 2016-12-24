@@ -24,6 +24,11 @@ def script(cfg, pubkeys):
            struct.pack('>B', cfg.size) + \
            b''.join(sorted(pubkeys.values()))
 
+def params(script):
+    threshold = struct.unpack('>B', script[1])[0]
+    size = struct.unpack('>B', script[2])[0]
+    return (threshold, size)
+
 def master_key(script):
     return blake2b(script, digest_size=32, person=b'[partysigMaster]').digest()
 
