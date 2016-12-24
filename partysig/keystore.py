@@ -3,8 +3,15 @@
 
 import click
 from contextlib import contextmanager
-from nacl.encoding import HexEncoder, RawEncoder
+from nacl.encoding import (
+    Base64Encoder,
+    HexEncoder,
+    RawEncoder,
+)
 from nacl.signing import SigningKey
+import os
+
+from . import util
 
 @contextmanager
 def keystore(cfg):
@@ -16,8 +23,10 @@ def keystore(cfg):
 
 class KeyStore(object):
     def __init__(self, cfg):
+        self.cfg = cfg
         # No keygen in progress (yet)
         self.sk = None
+        util.secure_makedirs(cfg.keydir)
 
     def close(self):
         pass
@@ -29,13 +38,20 @@ class KeyStore(object):
         return self.sk.verify_key.encode(RawEncoder)
 
     def save_script(self, script):
-        click.echo('Script: %s' % HexEncoder.encode(script))
+        master_hex = HexEncoder.encode(util.master_key(script))
+        with os.fdopen(util.secure_file(os.path.join(self.cfg.keydir, '%s.key' % master_hex)), 'w') as f:
+            f.write(self.sk.encode(Base64Encoder))
+        with open(os.path.join(self.cfg.keydir, '%s.script' % master_hex), 'w') as f:
+            f.write(Base64Encoder.encode(script))
 
     def get_script(self, master):
-        script_hex = click.prompt('Enter script for master key %s' % HexEncoder.encode(master))
-        return HexEncoder.decode(script_hex)
+        master_hex = HexEncoder.encode(master)
+        with open(os.path.join(self.cfg.keydir, '%s.script' % master_hex), 'r') as f:
+            return Base64Encoder.decode(f.read())
 
     def sign(self, master, msg):
-        sk_hex = click.prompt('Enter signing key for master key %s' % HexEncoder.encode(master))
-        sk = SigningKey(sk_hex, HexEncoder)
+        master_hex = HexEncoder.encode(master)
+        with open(os.path.join(self.cfg.keydir, '%s.key' % master_hex), 'r') as f:
+            sk_hex = f.read()
+        sk = SigningKey(sk_hex, Base64Encoder)
         return sk.sign(msg).signature
