@@ -1,0 +1,12 @@
+- Decide on file format for signatures
+
+- Sign the messages themselves or a hash of them? Option flag?
+
+- Should master keys contain the signature version? Or is the version in the
+  signature sufficient to know how to interpret the master key?
+  - Could master keys ever be useful except in combination with a signature?
+
+- Config file
+
+- Separate keystore daemon`
+  - Enable Qubes split-partysig setup
