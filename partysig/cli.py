@@ -1,3 +1,6 @@
+# Copyright (c) Jack Grigg
+# See LICENSE for details.
+
 import click
 from twisted.internet.task import react
 

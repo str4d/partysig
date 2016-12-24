@@ -1,3 +1,6 @@
+# Copyright (c) Jack Grigg
+# See LICENSE for details.
+
 import click
 from contextlib import contextmanager
 from nacl.encoding import HexEncoder, RawEncoder

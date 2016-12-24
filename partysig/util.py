@@ -1,3 +1,6 @@
+# Copyright (c) Jack Grigg
+# See LICENSE for details.
+
 from functools import wraps
 from pyblake2 import blake2b
 import struct

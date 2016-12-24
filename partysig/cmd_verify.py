@@ -1,3 +1,6 @@
+# Copyright (c) Jack Grigg
+# See LICENSE for details.
+
 import click
 from nacl.encoding import HexEncoder, RawEncoder
 from nacl.exceptions import BadSignatureError
