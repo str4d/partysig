@@ -33,8 +33,6 @@ class KeyStore(object):
 
     def generate_key(self):
         self.sk = SigningKey.generate()
-        click.echo('Signing key: %s' % self.sk.encode(HexEncoder))
-        click.echo('Pubkey: %s' % self.sk.verify_key.encode(HexEncoder))
         return self.sk.verify_key.encode(RawEncoder)
 
     def save_script(self, script):
