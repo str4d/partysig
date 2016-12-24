@@ -46,7 +46,13 @@ def alice(reactor, cfg, ks):
             returnValue(script)
 
     click.echo('Give one code to each participant:')
-    return DeferredList([alice_channel(reactor, i, getScript) for i in range(1, cfg.size)])
+    d = DeferredList([alice_channel(reactor, i, getScript) for i in range(1, cfg.size)],
+                     fireOnOneErrback=True)
+    def _errback(failure):
+        click.echo(failure)
+        return failure
+    d.addErrback(_errback)
+    return d
 
 @keygenProto
 @inlineCallbacks

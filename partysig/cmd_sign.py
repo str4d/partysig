@@ -56,7 +56,13 @@ def alice(reactor, ks):
             returnValue(psig)
 
     click.echo('Give one code to each participant:')
-    return DeferredList([alice_channel(reactor, i, msg, master, getPSig) for i in range(1, size)])
+    d = DeferredList([alice_channel(reactor, i, msg, master, getPSig) for i in range(1, size)],
+                     fireOnOneErrback=True)
+    def _errback(failure):
+        click.echo(failure)
+        return failure
+    d.addErrback(_errback)
+    return d
 
 @signProto
 @inlineCallbacks
