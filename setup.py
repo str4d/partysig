@@ -17,7 +17,7 @@ setup(
     author_email='str4d@i2pmail.org',
     url='https://github.com/str4d/partysig',
     classifiers=[
-        'Development Status :: 1 - Planning',
+        'Development Status :: 2 - Pre-Alpha',
         'Framework :: Twisted',
         'Intended Audience :: Developers',
         'License :: OSI Approved :: MIT License',
