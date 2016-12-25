@@ -16,6 +16,7 @@ setup(
     author='Jack Grigg',
     author_email='str4d@i2pmail.org',
     url='https://github.com/str4d/partysig',
+    download_url='https://github.com/str4d/partysig/tarball/%s'%versioneer.get_version(),
     classifiers=[
         'Development Status :: 2 - Pre-Alpha',
         'Framework :: Twisted',
