@@ -9,9 +9,7 @@ Installation
 
 ::
 
-    $ virtualenv env
-    $ . env/bin/activate
-    $ pip install -e .
+    $ pip install partysig
 
 Usage
 =====
