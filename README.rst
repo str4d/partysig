@@ -13,6 +13,38 @@ Installation
     $ . env/bin/activate
     $ pip install -e .
 
+Usage
+=====
+
+Key generation
+--------------
+
+On one machine, run::
+
+    $ partysig keygen start
+
+On the other machines, run::
+
+    $ partysig keygen join
+
+Signing
+-------
+
+On the machine with the file to sign, run::
+
+    $ partysig sign start FILE
+
+On the other machines, run::
+
+    $ partysig sign join
+
+Verifying signatures
+--------------------
+
+Run::
+
+    $ partysig verify FILE SIGNATURE
+
 Design
 ======
 
@@ -24,7 +56,19 @@ multisignature contains:
 - Signatures from a subset of those keys
 
 The first two parts together are equivalent to a Bitcoin script, and are similarly hashed
-to get the "master key" for the multi-party signature group.
+to get the "master key" for the multi-party signature group. Ed25519 is used for the
+individual signatures, and BLAKE2b is used for creating the master key.
+
+Signature format
+----------------
+
+::
+
+    Version    (1-byte uint)     \
+    Threshold  (1-byte uint)      |_ Hashed to obtain
+    Size       (1-byte uint)      |  the master key
+    Pubkeys    (32 x size bytes) /
+    Signatures (64 x threshold bytes)
 
 Acknowledgements
 ================
