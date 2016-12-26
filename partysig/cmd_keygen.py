@@ -53,7 +53,7 @@ def alice(reactor, cfg, ks):
         if len(pubkeys) == cfg.size:
             finish_bar()
             script = util.script(cfg, pubkeys)
-            ks.save_script(script)
+            ks.save_script(script, cfg.label)
             click.echo('Key generated!')
             click.echo('Master key: %s' % HexEncoder.encode(util.master_key(script)))
             for d in pending_scripts:
@@ -76,10 +76,10 @@ def alice(reactor, cfg, ks):
 
 @keygenProto
 @inlineCallbacks
-def bob(w, ks):
+def bob(w, cfg, ks):
     yield w.input_code('Enter code from Alice: ')
     yield w.send(ks.generate_key())
     script = yield w.get()
-    ks.save_script(script)
+    ks.save_script(script, cfg.label)
     click.echo('Key generated!')
     click.echo('Master key: %s' % HexEncoder.encode(util.master_key(script)))

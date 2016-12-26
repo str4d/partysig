@@ -10,6 +10,7 @@ from twisted.internet import defer
 
 from . import util
 
+
 def verify(reactor, master, msg, psig):
     version = struct.unpack('>B', psig[0])[0]
     if version != 1:

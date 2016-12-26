@@ -52,20 +52,31 @@ def keygen():
               help='number of participants who can sign')
 @click.option('--threshold', default=2,
               help='minimum number of participants required to create a signature')
+@click.argument('label', nargs=-1)
 @pass_config
-def keygen_start(cfg, size, threshold):
+def keygen_start(cfg, size, threshold, label):
     cfg.size = size
     cfg.threshold = threshold
+    cfg.label = ' '.join(label)
     from cmd_keygen import alice
     with keystore(cfg) as ks:
         react(alice, (cfg, ks))
 
 @keygen.command(name='join')
+@click.argument('label', nargs=-1)
 @pass_config
-def keygen_join(cfg):
+def keygen_join(cfg, label):
+    cfg.label = ' '.join(label)
     from cmd_keygen import bob
     with keystore(cfg) as ks:
-        react(bob, (ks,))
+        react(bob, (cfg, ks))
+
+@partysig.command(name='list-keys')
+@pass_config
+def listkeys(cfg):
+    from cmd_list import list_keys
+    with keystore(cfg) as ks:
+        react(list_keys, (ks,))
 
 @partysig.group()
 def sign():

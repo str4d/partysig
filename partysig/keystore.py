@@ -35,12 +35,26 @@ class KeyStore(object):
         self.sk = SigningKey.generate()
         return self.sk.verify_key.encode(RawEncoder)
 
-    def save_script(self, script):
+    def save_script(self, script, label=None):
         master_hex = HexEncoder.encode(util.master_key(script))
         with os.fdopen(util.secure_file(os.path.join(self.cfg.keydir, '%s.key' % master_hex)), 'w') as f:
             f.write(self.sk.encode(Base64Encoder))
         with open(os.path.join(self.cfg.keydir, '%s.script' % master_hex), 'w') as f:
             f.write(Base64Encoder.encode(script))
+        if label:
+            with open(os.path.join(self.cfg.keydir, '%s.label' % master_hex), 'w') as f:
+                f.write(label)
+
+    def list_master_keys(self):
+        mhs = [x[:-4] for x in os.listdir(self.cfg.keydir) if x.endswith('.key')]
+        ret = []
+        for master_hex in mhs:
+            try:
+                with open(os.path.join(self.cfg.keydir, '%s.label' % master_hex), 'r') as f:
+                    ret.append((HexEncoder.decode(master_hex), f.read().strip()))
+            except:
+                ret.append((HexEncoder.decode(master_hex), ''))
+        return ret
 
     def get_script(self, master):
         master_hex = HexEncoder.encode(master)
