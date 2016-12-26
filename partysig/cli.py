@@ -47,11 +47,17 @@ def partysig(ctx, confdir, keydir):
 def keygen():
     pass
 
+def threshold_range(ctx, param, value):
+    for p in ctx.command.params:
+        if isinstance(p, click.Option) and p.name == 'threshold':
+            p.type.max = value
+    return value
+
 @keygen.command(name='start')
-@click.option('--size', default=3,
-              help='number of participants who can sign')
-@click.option('--threshold', default=2,
-              help='minimum number of participants required to create a signature')
+@click.option('--size', default=3, is_eager=True, callback=threshold_range,
+              help='number of participants who can sign (default: 3)')
+@click.option('--threshold', type=click.IntRange(1, 3), default=2,
+              help='minimum number of participants required to create a signature (default: 2)')
 @click.argument('label', nargs=-1)
 @pass_config
 def keygen_start(cfg, size, threshold, label):
