@@ -19,22 +19,60 @@ Key generation
 
 On one machine, run::
 
-    $ partysig keygen start
+    $ partysig keygen start [--size=N] [--threshold=K] [SOME LABEL]
+
+Example output::
+
+    Give one code to each participant:
+    - 5-recipe-adult
+    - 4-potato-gremlin
+    Waiting for participants  [####################################]  100%
+    Key generated!
+    Master key: MASTER_KEY
 
 On the other machines, run::
 
-    $ partysig keygen join
+    $ partysig keygen join [SOME LABEL]
+
+Example output::
+
+    Enter code from Alice: 5-recipe-adult
+    Key generated!
+    Master key: MASTER_KEY
+
+    Enter code from Alice: 4-potato-gremlin
+    Key generated!
+    Master key: MASTER_KEY
 
 Signing
 -------
 
 On the machine with the file to sign, run::
 
-    $ partysig sign start FILE
+    $ partysig sign start --key=MASTER_KEY FILE
+
+Example output::
+
+    Give one code to each participant:
+    - 1-aftermath-pheasant
+    - 2-document-framework
+    Waiting for signers  [####################################]  100%
+    Threshold reached!
+    Signature: SIGNATURE
 
 On the other machines, run::
 
     $ partysig sign join
+    Enter code from Alice: 1-aftermath-pheasant
+    Waiting for signers...
+    Threshold reached!
+    Signature: SIGNATURE
+
+    $ partysig sign join
+    Enter code from Alice: 2-document-framework
+    Waiting for signers...
+    Threshold reached!
+    Signature: SIGNATURE
 
 Verifying signatures
 --------------------
@@ -42,6 +80,10 @@ Verifying signatures
 Run::
 
     $ partysig verify FILE SIGNATURE
+
+Example output::
+
+    Signature is valid!
 
 Design
 ======

@@ -88,6 +88,7 @@ def bob(w, ks):
     master = yield w.get()
     msg = yield w.get()
     yield w.send(ks.sign(master, msg))
+    click.echo('Waiting for signers...')
     psig = yield w.get()
     click.echo('Threshold reached!')
     click.echo('Signature: %s' % HexEncoder.encode(psig))
